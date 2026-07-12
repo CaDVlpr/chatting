@@ -2,12 +2,12 @@
 <html>
 <head>
 
-<title>Terminal Chatroom</title>
+<title>The land of shit</title>
 
 <style>
 
 * {
-    box-sizing: border-box;
+    box-sizing:border-box;
 }
 
 
@@ -21,20 +21,12 @@ body {
 
     font-family:"Courier New", monospace;
 
-    min-height:100vh;
-
 }
 
-
-/* Chat */
 
 #chat {
 
     margin:10px;
-
-    display:flex;
-
-    flex-direction:column;
 
 }
 
@@ -46,23 +38,42 @@ body {
 }
 
 
-/* PC input */
+/* PC typing line */
 
 #inputArea {
 
-    margin:0 10px;
+    margin:10px;
 
     height:25px;
 
     display:flex;
 
+    align-items:center;
+
 }
 
 
+#cursor {
+
+    animation:blink 1s infinite;
+
+    margin-right:5px;
+
+}
+
+
+@keyframes blink {
+
+    50% {
+
+        opacity:0;
+
+    }
+
+}
+
 
 #messageInput {
-
-    width:100%;
 
     background:transparent;
 
@@ -76,13 +87,11 @@ body {
 
     font-size:16px;
 
-    caret-color:white;
+    width:100%;
 
 }
 
 
-
-/* Mobile button hidden */
 
 #sendButton {
 
@@ -104,7 +113,6 @@ body {
     }
 
 
-
     #inputArea {
 
         position:fixed;
@@ -115,21 +123,22 @@ body {
 
         right:15px;
 
+        margin:0;
 
         height:45px;
 
-
-        margin:0;
-
-
         border:3px solid white;
-
 
         background:black;
 
-
     }
 
+
+    #cursor {
+
+        display:none;
+
+    }
 
 
     #messageInput {
@@ -141,23 +150,21 @@ body {
     }
 
 
-
     #sendButton {
 
         display:block;
 
         width:50px;
 
-        border:none;
-
         background:white;
 
         color:black;
 
+        border:none;
+
         font-size:25px;
 
     }
-
 
 }
 
@@ -165,10 +172,7 @@ body {
 </style>
 
 
-<!-- Firebase -->
-
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 
@@ -178,24 +182,17 @@ body {
 <body>
 
 
+<div id="chat"></div>
 
-<div id="chat">
-
-
-</div>
-
-
-
-<!-- typing area stays after messages on PC -->
 
 <div id="inputArea">
 
+<span id="cursor">█</span>
 
 <input id="messageInput" autocomplete="off">
 
 
 <button id="sendButton">↩</button>
-
 
 </div>
 
@@ -205,27 +202,22 @@ body {
 <script>
 
 
-// =========================
-// FIREBASE CONFIG
-// =========================
-
-
 const firebaseConfig = {
 
 
-    apiKey: "AIzaSyBE0_RBvPYFmeJ-tNaM3b75-qGPca4_m3I",
+    apiKey:"YOUR_API_KEY",
 
-    authDomain: "jacob-chat.firebaseapp.com",
+    authDomain:"YOUR_PROJECT.firebaseapp.com",
 
-    databaseURL: "https://jacob-chat-default-rtdb.europe-west1.firebasedatabase.app",
+    databaseURL:"YOUR_DATABASE_URL",
 
-    projectId: "jacob-chat",
+    projectId:"YOUR_PROJECT_ID",
 
-    storageBucket: "jacob-chat.firebasestorage.app",
+    storageBucket:"YOUR_PROJECT.appspot.com",
 
-    messagingSenderId: "554355410181",
+    messagingSenderId:"YOUR_ID",
 
-    appId: "1:554355410181:web:250c29e43f29cfb8b4e36c"
+    appId:"YOUR_APP_ID"
 
 
 };
@@ -235,18 +227,15 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 
-
-const database = firebase.database();
-
+const database=firebase.database();
 
 
 
+const chat=document.getElementById("chat");
 
-const chat = document.getElementById("chat");
+const input=document.getElementById("messageInput");
 
-const input = document.getElementById("messageInput");
-
-const button = document.getElementById("sendButton");
+const button=document.getElementById("sendButton");
 
 
 
@@ -254,18 +243,12 @@ const button = document.getElementById("sendButton");
 
 function randomColour(){
 
-
-    return "#" +
-
-    Math.floor(Math.random()*16777215)
-
-    .toString(16)
-
-    .padStart(6,"0");
-
+return "#" +
+Math.floor(Math.random()*16777215)
+.toString(16)
+.padStart(6,"0");
 
 }
-
 
 
 
@@ -273,27 +256,23 @@ function randomColour(){
 function sendMessage(){
 
 
-    let text=input.value.trim();
+let text=input.value.trim();
 
 
-    if(text==="") return;
-
-
-
-    database.ref("messages").push({
-
-
-        text:text,
-
-
-        time:Date.now()
-
-
-    });
+if(text==="") return;
 
 
 
-    input.value="";
+database.ref("messages").push({
+
+text:text,
+
+time:Date.now()
+
+});
+
+
+input.value="";
 
 
 }
@@ -302,39 +281,34 @@ function sendMessage(){
 
 
 
-// Receive messages
-
-
 database.ref("messages")
-
-.limitToLast(100)
 
 .on("child_added",function(snapshot){
 
 
 
-    let data=snapshot.val();
+let data=snapshot.val();
 
 
 
-    let message=document.createElement("div");
+let message=document.createElement("div");
 
 
-    message.className="message";
+message.className="message";
 
 
-    message.style.color=randomColour();
+message.style.color=randomColour();
 
 
-    message.textContent=data.text;
-
-
-
-    chat.appendChild(message);
+message.textContent=data.text;
 
 
 
-    window.scrollTo(0,document.body.scrollHeight);
+chat.appendChild(message);
+
+
+
+window.scrollTo(0,document.body.scrollHeight);
 
 
 
@@ -344,17 +318,15 @@ database.ref("messages")
 
 
 
-
-// Enter send
 
 input.addEventListener("keydown",function(e){
 
 
-    if(e.key==="Enter"){
+if(e.key==="Enter"){
 
-        sendMessage();
+sendMessage();
 
-    }
+}
 
 
 });
@@ -362,17 +334,21 @@ input.addEventListener("keydown",function(e){
 
 
 
-
-// Mobile send button
-
 button.onclick=function(){
 
-
-    sendMessage();
-
+sendMessage();
 
 };
 
+
+
+// clicking cursor focuses typing
+
+document.getElementById("cursor").onclick=function(){
+
+input.focus();
+
+};
 
 
 
