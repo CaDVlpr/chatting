@@ -1,652 +1,348 @@
 <!DOCTYPE html>
 <html>
 <head>
-
 <title>Land of shit</title>
 
 <style>
-
-* {
+*{
     box-sizing:border-box;
 }
 
-html, body {
-
+html,body{
     margin:0;
     width:100%;
     height:100%;
-
     background:black;
     color:white;
-
-    font-family:"Courier New", monospace;
-
+    font-family:"Courier New",monospace;
     overflow:hidden;
-
 }
 
-
-/* Chat */
-
-#chat {
-
+#chat{
     margin:10px;
-
-    height:calc(100vh - 40px);
-
-    overflow-y:auto;
-
     font-size:16px;
-
 }
 
-
-.message {
-
-    margin-bottom:5px;
-
-    line-height:16px;
-
+.message{
     color:white;
-
+    margin-bottom:5px;
+    line-height:16px;
 }
-
-
 
 /* PC terminal */
-
-#inputArea {
-
+#inputArea{
     margin-left:10px;
-
+    height:16px;
     display:flex;
-
     align-items:center;
-
-    height:20px;
-
 }
 
-
-
-#terminalText {
-
-    color:white;
-
+#terminalText{
     font-size:16px;
-
     white-space:pre;
-
 }
 
-
-
-#cursor {
-
-    color:white;
-
+#cursor{
     font-size:16px;
-
     width:6px;
-
     display:inline-block;
-
     animation:blink 1s infinite;
-
 }
 
-
-@keyframes blink {
-
-    50% {
-
-        opacity:0;
-
-    }
-
+@keyframes blink{
+    50%{opacity:0;}
 }
 
-
-
-#hiddenInput {
-
+#hiddenInput{
     position:absolute;
-
     opacity:0;
-
 }
 
 
+/* Verify button */
 
-
-
-/* Verify delete button */
-
-#clearButton {
-
+#clearButton{
     display:none;
-
     position:fixed;
-
     top:10px;
-
     right:10px;
-
     width:40px;
-
     height:40px;
-
     background:red;
-
-    border:none;
-
+    border:0;
     padding:8px;
-
     z-index:10;
-
 }
 
-
-#clearButton img {
-
+#clearButton img{
     width:100%;
-
     height:100%;
-
     filter:brightness(0);
-
     image-rendering:pixelated;
-
 }
 
 
+/* Mobile */
 
-
-
-
-
-/* MOBILE */
-
-#mobileInputArea {
-
+#mobileInputArea{
     display:none;
-
 }
-
-
 
 
 @media(max-width:600px){
 
-
-html, body {
-
-    height:100dvh;
-
-}
-
-
-
-#chat {
-
-    height:calc(100dvh - 75px);
-
-    overflow-y:auto;
-
-    margin:10px;
-
-    padding-bottom:5px;
-
-}
-
-
-
-#inputArea {
-
-    display:none;
-
-}
-
-
-
-#mobileInputArea {
-
-
-    display:flex;
-
-    position:fixed;
-
-    bottom:10px;
-
-    left:10px;
-
-    right:10px;
-
-
-    height:45px;
-
-
-    border:3px solid white;
-
-
-    background:black;
-
-
-    z-index:5;
-
-}
-
-
-
-#mobileInput {
-
-
-    flex:1;
-
-
-    background:black;
-
-
-    border:none;
-
-
-    outline:none;
-
-
-    color:white;
-
-
-    font-family:"Courier New", monospace;
-
-
-    font-size:18px;
-
-
-    padding-left:10px;
-
-
-}
-
-
-
-#sendButton {
-
-
-    width:45px;
-
-
-    background:white;
-
-
-    color:black;
-
-
-    border:none;
-
-
-    font-size:22px;
-
-
-}
-
-
+    html,body{
+        height:100dvh;
+    }
+
+    #chat{
+        height:calc(100dvh - 70px);
+        overflow-y:auto;
+        margin:10px;
+    }
+
+
+    #inputArea{
+        display:none;
+    }
+
+
+    #mobileInputArea{
+        display:flex;
+        position:fixed;
+        bottom:10px;
+        left:10px;
+        right:10px;
+        height:45px;
+        border:3px solid white;
+        background:black;
+        z-index:5;
+    }
+
+
+    #mobileInput{
+        flex:1;
+        background:black;
+        border:0;
+        outline:0;
+        color:white;
+        font-family:"Courier New",monospace;
+        font-size:18px;
+        padding-left:10px;
+    }
+
+
+    #sendButton{
+        width:45px;
+        background:white;
+        color:black;
+        border:0;
+        font-size:22px;
+    }
 
 }
 
 </style>
 
-
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-
 </head>
-
 
 <body>
 
 
 <button id="clearButton">
-
 <img src="https://www.svgrepo.com/show/335463/trash.svg">
-
 </button>
-
 
 
 <div id="chat"></div>
 
 
-
 <!-- PC -->
 
 <div id="inputArea">
-
 <span id="terminalText"></span><span id="cursor">|</span>
-
 <input id="hiddenInput">
-
 </div>
-
 
 
 <!-- MOBILE -->
 
 <div id="mobileInputArea">
-
 <input id="mobileInput">
-
 <button id="sendButton">↩</button>
-
 </div>
-
-
 
 
 
 <script>
 
-
-const firebaseConfig = {
-
-
-apiKey: "AIzaSyBE0_RBvPYFmeJ-tNaM3b75-qGPca4_m3I",
-
-authDomain: "jacob-chat.firebaseapp.com",
-
-databaseURL: "https://jacob-chat-default-rtdb.europe-west1.firebasedatabase.app",
-
-projectId: "jacob-chat",
-
-storageBucket: "jacob-chat.firebasestorage.app",
-
-messagingSenderId: "554355410181",
-
-appId: "1:554355410181:web:250c29e43f29cfb8b4e36c"
-
+const firebaseConfig={
+apiKey:"AIzaSyBE0_RBvPYFmeJ-tNaM3b75-qGPca4_m3I",
+authDomain:"jacob-chat.firebaseapp.com",
+databaseURL:"https://jacob-chat-default-rtdb.europe-west1.firebasedatabase.app",
+projectId:"jacob-chat",
+storageBucket:"jacob-chat.firebasestorage.app",
+messagingSenderId:"554355410181",
+appId:"1:554355410181:web:250c29e43f29cfb8b4e36c"
 };
-
 
 
 firebase.initializeApp(firebaseConfig);
 
-
-const database = firebase.database();
-
+const database=firebase.database();
 
 
+const chat=document.getElementById("chat");
 
-const chat = document.getElementById("chat");
+const hiddenInput=document.getElementById("hiddenInput");
+const mobileInput=document.getElementById("mobileInput");
 
-const hiddenInput = document.getElementById("hiddenInput");
+const terminalText=document.getElementById("terminalText");
 
-const mobileInput = document.getElementById("mobileInput");
+const clearButton=document.getElementById("clearButton");
+const sendButton=document.getElementById("sendButton");
 
-const terminalText = document.getElementById("terminalText");
-
-const clearButton = document.getElementById("clearButton");
-
-const sendButton = document.getElementById("sendButton");
-
-
-
-let verified=false;
 
 let currentText="";
+let verified=false;
 
 
 
-
-
-
-const typeSound = new Audio(
+const typeSound=new Audio(
 "https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"
 );
 
 
-const sendSound = new Audio(
+const sendSound=new Audio(
 "https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"
 );
 
 
 
-
-
-function playType(){
-
-typeSound.currentTime=0;
-
-typeSound.play().catch(()=>{});
-
-}
-
-
-
-function playSend(){
-
-sendSound.currentTime=0;
-
-sendSound.play().catch(()=>{});
-
-}
-
-
-
-
-
-
-
 function sendMessage(text){
 
+    text=text.trim();
 
-text=text.trim();
-
-
-
-if(text==="") return;
+    if(text==="")return;
 
 
+    if(text=="?verify"){
 
-if(text==="?verify"){
+        verified=true;
 
+        clearButton.style.display="block";
 
-verified=true;
-
-
-clearButton.style.display="block";
-
-
-return;
+        return;
+    }
 
 
-}
+    database.ref("messages").push({
+        text:text,
+        time:Date.now()
+    });
 
 
-
-database.ref("messages").push({
-
-text:text,
-
-time:Date.now()
-
-});
-
-
-playSend();
-
+    sendSound.currentTime=0;
+    sendSound.play().catch(()=>{});
 
 }
 
-
-
-
-
-
-// PC typing
 
 
 hiddenInput.addEventListener("input",()=>{
 
+    currentText=hiddenInput.value;
 
-currentText=hiddenInput.value;
+    terminalText.textContent=currentText;
 
-
-terminalText.textContent=currentText;
-
-
-playType();
-
+    typeSound.currentTime=0;
+    typeSound.play().catch(()=>{});
 
 });
-
 
 
 
 hiddenInput.addEventListener("keydown",(e)=>{
 
+    if(e.key==="Enter"){
 
-if(e.key==="Enter"){
+        sendMessage(currentText);
 
-
-sendMessage(currentText);
-
-
-currentText="";
-
-
-hiddenInput.value="";
-
-
-terminalText.textContent="";
-
-
-}
-
+        currentText="";
+        hiddenInput.value="";
+        terminalText.textContent="";
+    }
 
 });
 
-
-
-
-
-// Mobile enter
 
 
 mobileInput.addEventListener("keydown",(e)=>{
 
+    if(e.key==="Enter"){
 
-if(e.key==="Enter"){
+        sendMessage(mobileInput.value);
 
-
-sendMessage(mobileInput.value);
-
-
-mobileInput.value="";
-
-
-}
-
+        mobileInput.value="";
+    }
 
 });
-
 
 
 sendButton.onclick=()=>{
 
+    sendMessage(mobileInput.value);
 
-sendMessage(mobileInput.value);
-
-
-mobileInput.value="";
-
+    mobileInput.value="";
 
 };
 
 
-
-
-
-
-// Keep PC focused
 
 document.onclick=()=>{
 
+    if(window.innerWidth>600){
 
-if(window.innerWidth>600){
+        hiddenInput.focus();
 
-hiddenInput.focus();
-
-}
-
+    }
 
 };
 
 
-
-
-
-
-// Delete all
 
 clearButton.onclick=()=>{
 
+    if(!verified)return;
 
-if(!verified) return;
+    database.ref("messages").remove();
 
+    chat.innerHTML="";
 
-
-database.ref("messages").remove();
-
-
-
-chat.innerHTML="";
-
-
-
-clearButton.style.display="none";
-
+    clearButton.style.display="none";
 
 };
 
 
 
+database.ref("messages").on("child_added",(snap)=>{
 
+    let data=snap.val();
 
+    let msg=document.createElement("div");
 
+    msg.className="message";
 
-// Receive messages
+    msg.textContent=data.text;
 
+    chat.appendChild(msg);
 
-database.ref("messages")
-
-.on("child_added",(snapshot)=>{
-
-
-const data=snapshot.val();
-
-
-
-const message=document.createElement("div");
-
-
-message.className="message";
-
-
-message.textContent=data.text;
-
-
-
-chat.appendChild(message);
-
-
-
-chat.scrollTop=chat.scrollHeight;
-
-
+    chat.scrollTop=chat.scrollHeight;
 
 });
-
-
 
 </script>
 
