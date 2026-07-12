@@ -10,21 +10,32 @@
     box-sizing:border-box;
 }
 
-
-body {
+html, body {
 
     margin:0;
+    width:100%;
+    height:100%;
+
     background:black;
     color:white;
+
     font-family:"Courier New", monospace;
+
+    overflow:hidden;
 
 }
 
 
+/* Chat */
 
 #chat {
 
     margin:10px;
+
+    height:calc(100vh - 40px);
+
+    overflow-y:auto;
+
     font-size:16px;
 
 }
@@ -33,21 +44,26 @@ body {
 .message {
 
     margin-bottom:5px;
-    color:white;
+
     line-height:16px;
+
+    color:white;
 
 }
 
 
 
-/* PC terminal input */
+/* PC terminal */
 
 #inputArea {
 
     margin-left:10px;
-    margin-top:0;
+
     display:flex;
+
     align-items:center;
+
+    height:20px;
 
 }
 
@@ -55,7 +71,10 @@ body {
 
 #terminalText {
 
+    color:white;
+
     font-size:16px;
+
     white-space:pre;
 
 }
@@ -64,49 +83,44 @@ body {
 
 #cursor {
 
+    color:white;
+
     font-size:16px;
+
     width:6px;
+
     display:inline-block;
+
     animation:blink 1s infinite;
 
 }
 
 
-
 @keyframes blink {
 
     50% {
+
         opacity:0;
+
     }
 
 }
 
 
 
-
-/* Hidden PC input */
-
 #hiddenInput {
 
     position:absolute;
+
     opacity:0;
 
 }
 
 
 
-/* Mobile input */
-
-#mobileInputArea {
-
-    display:none;
-
-}
 
 
-
-
-/* Clear button */
+/* Verify delete button */
 
 #clearButton {
 
@@ -128,8 +142,9 @@ body {
 
     padding:8px;
 
-}
+    z-index:10;
 
+}
 
 
 #clearButton img {
@@ -148,116 +163,137 @@ body {
 
 
 
-/* PHONE */
+
+
+/* MOBILE */
+
+#mobileInputArea {
+
+    display:none;
+
+}
+
+
+
 
 @media(max-width:600px){
 
 
-    body {
+html, body {
 
-        padding-bottom:70px;
+    height:100dvh;
 
-    }
+}
 
 
 
-    #inputArea {
+#chat {
 
-        display:none;
+    height:calc(100dvh - 75px);
 
-    }
+    overflow-y:auto;
 
+    margin:10px;
 
+    padding-bottom:5px;
 
-    #mobileInputArea {
+}
 
 
-        display:flex;
 
+#inputArea {
 
-        position:fixed;
+    display:none;
 
+}
 
-        bottom:15px;
 
 
-        left:15px;
+#mobileInputArea {
 
 
-        right:15px;
+    display:flex;
 
+    position:fixed;
 
-        height:45px;
+    bottom:10px;
 
+    left:10px;
 
-        border:3px solid white;
+    right:10px;
 
 
-        background:black;
+    height:45px;
 
 
-    }
+    border:3px solid white;
 
 
+    background:black;
 
-    #mobileInput {
 
+    z-index:5;
 
-        flex:1;
+}
 
 
-        background:black;
 
+#mobileInput {
 
-        border:none;
 
+    flex:1;
 
-        outline:none;
 
+    background:black;
 
-        color:white;
 
+    border:none;
 
-        font-family:"Courier New", monospace;
 
+    outline:none;
 
-        font-size:18px;
 
+    color:white;
 
-        padding-left:10px;
 
+    font-family:"Courier New", monospace;
 
-    }
 
+    font-size:18px;
 
 
-    #sendButton {
-
-
-        width:45px;
-
-
-        background:white;
-
-
-        color:black;
-
-
-        border:none;
-
-
-        font-size:22px;
-
-
-    }
+    padding-left:10px;
 
 
 }
 
 
 
-</style>
+#sendButton {
 
+
+    width:45px;
+
+
+    background:white;
+
+
+    color:black;
+
+
+    border:none;
+
+
+    font-size:22px;
+
+
+}
+
+
+
+}
+
+</style>
 
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -270,7 +306,6 @@ body {
 <body>
 
 
-
 <button id="clearButton">
 
 <img src="https://www.svgrepo.com/show/335463/trash.svg">
@@ -280,7 +315,6 @@ body {
 
 
 <div id="chat"></div>
-
 
 
 
@@ -300,12 +334,11 @@ body {
 
 <div id="mobileInputArea">
 
-<input id="mobileInput" placeholder="">
+<input id="mobileInput">
 
 <button id="sendButton">↩</button>
 
 </div>
-
 
 
 
@@ -338,21 +371,22 @@ appId: "1:554355410181:web:250c29e43f29cfb8b4e36c"
 firebase.initializeApp(firebaseConfig);
 
 
-const database=firebase.database();
+const database = firebase.database();
 
 
 
-const chat=document.getElementById("chat");
 
-const hiddenInput=document.getElementById("hiddenInput");
+const chat = document.getElementById("chat");
 
-const mobileInput=document.getElementById("mobileInput");
+const hiddenInput = document.getElementById("hiddenInput");
 
-const terminalText=document.getElementById("terminalText");
+const mobileInput = document.getElementById("mobileInput");
 
-const clearButton=document.getElementById("clearButton");
+const terminalText = document.getElementById("terminalText");
 
-const sendButton=document.getElementById("sendButton");
+const clearButton = document.getElementById("clearButton");
+
+const sendButton = document.getElementById("sendButton");
 
 
 
@@ -365,12 +399,12 @@ let currentText="";
 
 
 
-const typeSound=new Audio(
+const typeSound = new Audio(
 "https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"
 );
 
 
-const sendSound=new Audio(
+const sendSound = new Audio(
 "https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"
 );
 
@@ -381,17 +415,21 @@ const sendSound=new Audio(
 function playType(){
 
 typeSound.currentTime=0;
+
 typeSound.play().catch(()=>{});
 
 }
 
 
+
 function playSend(){
 
 sendSound.currentTime=0;
+
 sendSound.play().catch(()=>{});
 
 }
+
 
 
 
@@ -404,8 +442,8 @@ function sendMessage(text){
 text=text.trim();
 
 
-if(text==="") return;
 
+if(text==="") return;
 
 
 
@@ -414,9 +452,12 @@ if(text==="?verify"){
 
 verified=true;
 
+
 clearButton.style.display="block";
 
+
 return;
+
 
 }
 
@@ -441,11 +482,10 @@ playSend();
 
 
 
-
 // PC typing
 
 
-hiddenInput.addEventListener("input",function(){
+hiddenInput.addEventListener("input",()=>{
 
 
 currentText=hiddenInput.value;
@@ -461,7 +501,8 @@ playType();
 
 
 
-hiddenInput.addEventListener("keydown",function(e){
+
+hiddenInput.addEventListener("keydown",(e)=>{
 
 
 if(e.key==="Enter"){
@@ -472,7 +513,9 @@ sendMessage(currentText);
 
 currentText="";
 
+
 hiddenInput.value="";
+
 
 terminalText.textContent="";
 
@@ -486,12 +529,10 @@ terminalText.textContent="";
 
 
 
+// Mobile enter
 
 
-// Mobile typing
-
-
-mobileInput.addEventListener("keydown",function(e){
+mobileInput.addEventListener("keydown",(e)=>{
 
 
 if(e.key==="Enter"){
@@ -510,7 +551,7 @@ mobileInput.value="";
 
 
 
-sendButton.onclick=function(){
+sendButton.onclick=()=>{
 
 
 sendMessage(mobileInput.value);
@@ -526,18 +567,17 @@ mobileInput.value="";
 
 
 
+// Keep PC focused
 
+document.onclick=()=>{
 
-// focus PC
-
-
-document.onclick=function(){
 
 if(window.innerWidth>600){
 
 hiddenInput.focus();
 
 }
+
 
 };
 
@@ -546,20 +586,21 @@ hiddenInput.focus();
 
 
 
+// Delete all
 
-// clear messages
-
-
-clearButton.onclick=function(){
+clearButton.onclick=()=>{
 
 
-if(!verified)return;
+if(!verified) return;
+
 
 
 database.ref("messages").remove();
 
 
+
 chat.innerHTML="";
+
 
 
 clearButton.style.display="none";
@@ -573,18 +614,19 @@ clearButton.style.display="none";
 
 
 
-// receive
+// Receive messages
 
 
 database.ref("messages")
 
-.on("child_added",function(snapshot){
+.on("child_added",(snapshot)=>{
 
 
-let data=snapshot.val();
+const data=snapshot.val();
 
 
-let message=document.createElement("div");
+
+const message=document.createElement("div");
 
 
 message.className="message";
@@ -593,10 +635,13 @@ message.className="message";
 message.textContent=data.text;
 
 
+
 chat.appendChild(message);
 
 
-window.scrollTo(0,document.body.scrollHeight);
+
+chat.scrollTop=chat.scrollHeight;
+
 
 
 });
