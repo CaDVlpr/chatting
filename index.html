@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>Terminal Chatroom</title>
+<title>Land of shit</title>
 
 <style>
 
@@ -47,7 +47,8 @@ body {
 
 
 
-/* Typing line */
+
+/* Terminal input */
 
 #inputArea {
 
@@ -56,8 +57,6 @@ body {
     display:flex;
 
     align-items:center;
-
-    color:white;
 
     font-size:16px;
 
@@ -83,9 +82,9 @@ body {
 
     font-size:16px;
 
-    font-weight:normal;
+    width:7px;
 
-    width:8px;
+    overflow:hidden;
 
     display:inline-block;
 
@@ -116,9 +115,51 @@ body {
 
     opacity:0;
 
-    pointer-events:none;
+}
+
+
+
+
+/* Clear button */
+
+#clearButton {
+
+    display:none;
+
+    position:fixed;
+
+    top:10px;
+
+    right:10px;
+
+    width:40px;
+
+    height:40px;
+
+    background:red;
+
+    border:none;
+
+    cursor:pointer;
+
+    padding:8px;
 
 }
+
+
+#clearButton img {
+
+    width:100%;
+
+    height:100%;
+
+    filter:brightness(0);
+
+    image-rendering:pixelated;
+
+}
+
+
 
 
 
@@ -155,8 +196,6 @@ body {
 
         padding-left:10px;
 
-        font-size:18px;
-
     }
 
 
@@ -168,11 +207,11 @@ body {
 
     }
 
-
 }
 
 
 </style>
+
 
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -185,6 +224,14 @@ body {
 <body>
 
 
+<button id="clearButton">
+
+<img src="https://www.svgrepo.com/show/335463/trash.svg">
+
+</button>
+
+
+
 <div id="chat"></div>
 
 
@@ -195,8 +242,8 @@ body {
 
 <input id="hiddenInput" autocomplete="off">
 
-
 </div>
+
 
 
 
@@ -207,6 +254,7 @@ body {
 // FIREBASE
 
 const firebaseConfig = {
+
 
 apiKey: "AIzaSyBE0_RBvPYFmeJ-tNaM3b75-qGPca4_m3I",
 
@@ -222,6 +270,7 @@ messagingSenderId: "554355410181",
 
 appId: "1:554355410181:web:250c29e43f29cfb8b4e36c"
 
+
 };
 
 
@@ -233,29 +282,40 @@ const database = firebase.database();
 
 
 
+
+
 const chat = document.getElementById("chat");
 
 const hiddenInput = document.getElementById("hiddenInput");
 
 const terminalText = document.getElementById("terminalText");
 
+const clearButton = document.getElementById("clearButton");
+
 
 
 let currentText = "";
+
+let verified = false;
+
 
 
 
 
 // Sounds
 
+
 const typeSound = new Audio(
 "https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"
 );
 
 
+
 const sendSound = new Audio(
 "https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"
 );
+
+
 
 
 
@@ -280,7 +340,11 @@ function playSend(){
 
 
 
-// Keep focus
+
+
+
+// Focus automatically
+
 
 function focusInput(){
 
@@ -290,7 +354,7 @@ function focusInput(){
 
 
 
-window.onload = function(){
+window.onload=function(){
 
     focusInput();
 
@@ -298,12 +362,11 @@ window.onload = function(){
 
 
 
-document.onclick = function(){
+document.onclick=function(){
 
     focusInput();
 
 };
-
 
 
 
@@ -312,10 +375,11 @@ document.onclick = function(){
 
 // Typing
 
-hiddenInput.addEventListener("input", function(){
+
+hiddenInput.addEventListener("input",function(){
 
 
-    let oldText = currentText;
+    let old = currentText;
 
 
     currentText = hiddenInput.value;
@@ -325,7 +389,7 @@ hiddenInput.addEventListener("input", function(){
 
 
 
-    if(currentText.length > oldText.length){
+    if(currentText.length > old.length){
 
         playType();
 
@@ -340,19 +404,56 @@ hiddenInput.addEventListener("input", function(){
 
 
 
-// Send
 
-hiddenInput.addEventListener("keydown", function(e){
+// Send / commands
+
+
+hiddenInput.addEventListener("keydown",function(e){
+
 
 
     if(e.key === "Enter"){
+
 
 
         let text = currentText.trim();
 
 
 
+
+        // VERIFY COMMAND
+
+
+        if(text === "?verify"){
+
+
+
+            verified = true;
+
+
+            clearButton.style.display="block";
+
+
+
+            currentText="";
+
+            hiddenInput.value="";
+
+            terminalText.textContent="";
+
+
+
+            return;
+
+        }
+
+
+
+
+
+
         if(text !== ""){
+
 
 
             database.ref("messages").push({
@@ -367,15 +468,21 @@ hiddenInput.addEventListener("keydown", function(e){
 
             playSend();
 
+
+
         }
 
 
 
-        currentText = "";
 
-        hiddenInput.value = "";
 
-        terminalText.textContent = "";
+
+        currentText="";
+
+        hiddenInput.value="";
+
+        terminalText.textContent="";
+
 
 
     }
@@ -389,11 +496,43 @@ hiddenInput.addEventListener("keydown", function(e){
 
 
 
+
+// Delete all messages
+
+
+clearButton.onclick=function(){
+
+
+    if(!verified) return;
+
+
+
+    database.ref("messages").remove();
+
+
+
+    chat.innerHTML="";
+
+
+    clearButton.style.display="none";
+
+
+};
+
+
+
+
+
+
+
+
 // Receive messages
+
 
 database.ref("messages")
 
-.on("child_added", function(snapshot){
+.on("child_added",function(snapshot){
+
 
 
     let data = snapshot.val();
@@ -403,17 +542,20 @@ database.ref("messages")
     let message = document.createElement("div");
 
 
+
     message.className="message";
 
 
+
     message.textContent=data.text;
+
 
 
     chat.appendChild(message);
 
 
 
-    window.scrollTo(0, document.body.scrollHeight);
+    window.scrollTo(0,document.body.scrollHeight);
 
 
 
