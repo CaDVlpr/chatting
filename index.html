@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Terminal Chatroom</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+
+body {
+
+    margin:0;
+
+    background:black;
+
+    color:white;
+
+    font-family:"Courier New", monospace;
+
+    min-height:100vh;
+
+}
+
+
+/* Chat */
+
+#chat {
+
+    margin:10px;
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+
+.message {
+
+    margin-bottom:5px;
+
+}
+
+
+/* PC input */
+
+#inputArea {
+
+    margin:0 10px;
+
+    height:25px;
+
+    display:flex;
+
+}
+
+
+
+#messageInput {
+
+    width:100%;
+
+    background:transparent;
+
+    border:none;
+
+    outline:none;
+
+    color:white;
+
+    font-family:"Courier New", monospace;
+
+    font-size:16px;
+
+    caret-color:white;
+
+}
+
+
+
+/* Mobile button hidden */
+
+#sendButton {
+
+    display:none;
+
+}
+
+
+
+/* Mobile */
+
+@media(max-width:600px){
+
+
+    body {
+
+        padding-bottom:80px;
+
+    }
+
+
+
+    #inputArea {
+
+        position:fixed;
+
+        bottom:15px;
+
+        left:15px;
+
+        right:15px;
+
+
+        height:45px;
+
+
+        margin:0;
+
+
+        border:3px solid white;
+
+
+        background:black;
+
+
+    }
+
+
+
+    #messageInput {
+
+        padding-left:10px;
+
+        font-size:18px;
+
+    }
+
+
+
+    #sendButton {
+
+        display:block;
+
+        width:50px;
+
+        border:none;
+
+        background:white;
+
+        color:black;
+
+        font-size:25px;
+
+    }
+
+
+}
+
+
+</style>
+
+
+<!-- Firebase -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+
+</head>
+
+
+<body>
+
+
+
+<div id="chat">
+
+
+</div>
+
+
+
+<!-- typing area stays after messages on PC -->
+
+<div id="inputArea">
+
+
+<input id="messageInput" autocomplete="off">
+
+
+<button id="sendButton">↩</button>
+
+
+</div>
+
+
+
+
+<script>
+
+
+// =========================
+// FIREBASE CONFIG
+// =========================
+
+
+const firebaseConfig = {
+
+
+    apiKey: "AIzaSyBE0_RBvPYFmeJ-tNaM3b75-qGPca4_m3I",
+
+    authDomain: "jacob-chat.firebaseapp.com",
+
+    databaseURL: "https://jacob-chat-default-rtdb.europe-west1.firebasedatabase.app",
+
+    projectId: "jacob-chat",
+
+    storageBucket: "jacob-chat.firebasestorage.app",
+
+    messagingSenderId: "554355410181",
+
+    appId: "1:554355410181:web:250c29e43f29cfb8b4e36c"
+
+
+};
+
+
+
+firebase.initializeApp(firebaseConfig);
+
+
+
+const database = firebase.database();
+
+
+
+
+
+const chat = document.getElementById("chat");
+
+const input = document.getElementById("messageInput");
+
+const button = document.getElementById("sendButton");
+
+
+
+
+
+function randomColour(){
+
+
+    return "#" +
+
+    Math.floor(Math.random()*16777215)
+
+    .toString(16)
+
+    .padStart(6,"0");
+
+
+}
+
+
+
+
+
+function sendMessage(){
+
+
+    let text=input.value.trim();
+
+
+    if(text==="") return;
+
+
+
+    database.ref("messages").push({
+
+
+        text:text,
+
+
+        time:Date.now()
+
+
+    });
+
+
+
+    input.value="";
+
+
+}
+
+
+
+
+
+// Receive messages
+
+
+database.ref("messages")
+
+.limitToLast(100)
+
+.on("child_added",function(snapshot){
+
+
+
+    let data=snapshot.val();
+
+
+
+    let message=document.createElement("div");
+
+
+    message.className="message";
+
+
+    message.style.color=randomColour();
+
+
+    message.textContent=data.text;
+
+
+
+    chat.appendChild(message);
+
+
+
+    window.scrollTo(0,document.body.scrollHeight);
+
+
+
+});
+
+
+
+
+
+
+// Enter send
+
+input.addEventListener("keydown",function(e){
+
+
+    if(e.key==="Enter"){
+
+        sendMessage();
+
+    }
+
+
+});
+
+
+
+
+
+// Mobile send button
+
+button.onclick=function(){
+
+
+    sendMessage();
+
+
+};
+
+
+
+
+</script>
+
+
+</body>
+</html>
