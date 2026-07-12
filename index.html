@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>Land of shit</title>
+<title>Terminal Chatroom</title>
 
 <style>
 
@@ -41,12 +41,13 @@ body {
 
     margin-bottom:5px;
 
+    color:white;
+
 }
 
 
 
-
-/* Terminal input */
+/* Typing line */
 
 #inputArea {
 
@@ -56,22 +57,37 @@ body {
 
     align-items:center;
 
-}
+    color:white;
 
-
-
-#terminalText,
-#cursor {
-
-    font-size:24px;
-
-    font-weight:bold;
+    font-size:16px;
 
 }
 
 
 
+#terminalText {
+
+    color:white;
+
+    font-size:16px;
+
+    white-space:pre;
+
+}
+
+
+
 #cursor {
+
+    color:white;
+
+    font-size:16px;
+
+    font-weight:normal;
+
+    width:8px;
+
+    display:inline-block;
 
     animation:blink 1s infinite;
 
@@ -92,7 +108,7 @@ body {
 
 
 
-/* Hidden input captures typing */
+/* Hidden input */
 
 #hiddenInput {
 
@@ -103,7 +119,6 @@ body {
     pointer-events:none;
 
 }
-
 
 
 
@@ -140,6 +155,8 @@ body {
 
         padding-left:10px;
 
+        font-size:18px;
+
     }
 
 
@@ -151,8 +168,8 @@ body {
 
     }
 
-}
 
+}
 
 
 </style>
@@ -171,11 +188,13 @@ body {
 <div id="chat"></div>
 
 
+
 <div id="inputArea">
 
-<span id="terminalText"></span><span id="cursor">█</span>
+<span id="terminalText"></span><span id="cursor">|</span>
 
 <input id="hiddenInput" autocomplete="off">
+
 
 </div>
 
@@ -185,10 +204,7 @@ body {
 <script>
 
 
-// ==========================
-// FIREBASE CONFIG
-// ==========================
-
+// FIREBASE
 
 const firebaseConfig = {
 
@@ -217,8 +233,6 @@ const database = firebase.database();
 
 
 
-
-
 const chat = document.getElementById("chat");
 
 const hiddenInput = document.getElementById("hiddenInput");
@@ -227,10 +241,7 @@ const terminalText = document.getElementById("terminalText");
 
 
 
-
-
 let currentText = "";
-
 
 
 
@@ -245,9 +256,6 @@ const typeSound = new Audio(
 const sendSound = new Audio(
 "https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"
 );
-
-
-
 
 
 
@@ -272,22 +280,7 @@ function playSend(){
 
 
 
-
-function randomColour(){
-
-return "#" +
-Math.floor(Math.random()*16777215)
-.toString(16)
-.padStart(6,"0");
-
-}
-
-
-
-
-
-
-// Always focus
+// Keep focus
 
 function focusInput(){
 
@@ -305,8 +298,7 @@ window.onload = function(){
 
 
 
-
-document.onclick=function(){
+document.onclick = function(){
 
     focusInput();
 
@@ -320,11 +312,10 @@ document.onclick=function(){
 
 // Typing
 
+hiddenInput.addEventListener("input", function(){
 
-hiddenInput.addEventListener("input",function(){
 
-
-    let old = currentText;
+    let oldText = currentText;
 
 
     currentText = hiddenInput.value;
@@ -334,7 +325,7 @@ hiddenInput.addEventListener("input",function(){
 
 
 
-    if(currentText.length > old.length){
+    if(currentText.length > oldText.length){
 
         playType();
 
@@ -349,49 +340,45 @@ hiddenInput.addEventListener("input",function(){
 
 
 
-// Enter send
+// Send
+
+hiddenInput.addEventListener("keydown", function(e){
 
 
-hiddenInput.addEventListener("keydown",function(e){
+    if(e.key === "Enter"){
 
 
-
-if(e.key==="Enter"){
-
-
-    let text=currentText.trim();
-
-
-
-    if(text !== ""){
-
-
-        database.ref("messages").push({
-
-            text:text,
-
-            time:Date.now()
-
-        });
+        let text = currentText.trim();
 
 
 
-        playSend();
+        if(text !== ""){
+
+
+            database.ref("messages").push({
+
+                text:text,
+
+                time:Date.now()
+
+            });
+
+
+
+            playSend();
+
+        }
+
+
+
+        currentText = "";
+
+        hiddenInput.value = "";
+
+        terminalText.textContent = "";
 
 
     }
-
-
-
-    currentText="";
-
-    hiddenInput.value="";
-
-    terminalText.textContent="";
-
-
-
-}
 
 
 });
@@ -404,35 +391,29 @@ if(e.key==="Enter"){
 
 // Receive messages
 
-
 database.ref("messages")
 
-.on("child_added",function(snapshot){
+.on("child_added", function(snapshot){
+
+
+    let data = snapshot.val();
 
 
 
-    let data=snapshot.val();
-
-
-
-    let message=document.createElement("div");
+    let message = document.createElement("div");
 
 
     message.className="message";
 
 
-    message.style.color=randomColour();
-
-
     message.textContent=data.text;
-
 
 
     chat.appendChild(message);
 
 
 
-    window.scrollTo(0,document.body.scrollHeight);
+    window.scrollTo(0, document.body.scrollHeight);
 
 
 
