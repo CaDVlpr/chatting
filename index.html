@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>The land of shit</title>
+<title>Land of shit</title>
 
 <style>
 
@@ -21,14 +21,20 @@ body {
 
     font-family:"Courier New", monospace;
 
+    min-height:100vh;
+
 }
+
 
 
 #chat {
 
     margin:10px;
 
+    font-size:16px;
+
 }
+
 
 
 .message {
@@ -38,13 +44,13 @@ body {
 }
 
 
-/* PC typing line */
+
+
+/* Terminal input */
 
 #inputArea {
 
     margin:10px;
-
-    height:25px;
 
     display:flex;
 
@@ -53,13 +59,24 @@ body {
 }
 
 
+
+#terminalText,
+#cursor {
+
+    font-size:24px;
+
+    font-weight:bold;
+
+}
+
+
+
 #cursor {
 
     animation:blink 1s infinite;
 
-    margin-right:5px;
-
 }
+
 
 
 @keyframes blink {
@@ -73,31 +90,20 @@ body {
 }
 
 
-#messageInput {
 
-    background:transparent;
 
-    border:none;
+/* Hidden input captures typing */
 
-    outline:none;
+#hiddenInput {
 
-    color:white;
+    position:absolute;
 
-    font-family:"Courier New", monospace;
+    opacity:0;
 
-    font-size:16px;
-
-    width:100%;
+    pointer-events:none;
 
 }
 
-
-
-#sendButton {
-
-    display:none;
-
-}
 
 
 
@@ -113,6 +119,7 @@ body {
     }
 
 
+
     #inputArea {
 
         position:fixed;
@@ -123,50 +130,29 @@ body {
 
         right:15px;
 
-        margin:0;
-
         height:45px;
+
+        margin:0;
 
         border:3px solid white;
 
         background:black;
 
-    }
-
-
-    #cursor {
-
-        display:none;
-
-    }
-
-
-    #messageInput {
-
         padding-left:10px;
+
+    }
+
+
+
+    #terminalText,
+    #cursor {
 
         font-size:18px;
 
     }
 
-
-    #sendButton {
-
-        display:block;
-
-        width:50px;
-
-        background:white;
-
-        color:black;
-
-        border:none;
-
-        font-size:25px;
-
-    }
-
 }
+
 
 
 </style>
@@ -187,12 +173,9 @@ body {
 
 <div id="inputArea">
 
-<span id="cursor">█</span>
+<span id="terminalText"></span><span id="cursor">█</span>
 
-<input id="messageInput" autocomplete="off">
-
-
-<button id="sendButton">↩</button>
+<input id="hiddenInput" autocomplete="off">
 
 </div>
 
@@ -202,23 +185,26 @@ body {
 <script>
 
 
+// ==========================
+// FIREBASE CONFIG
+// ==========================
+
+
 const firebaseConfig = {
 
+apiKey: "AIzaSyBE0_RBvPYFmeJ-tNaM3b75-qGPca4_m3I",
 
-    apiKey:"YOUR_API_KEY",
+authDomain: "jacob-chat.firebaseapp.com",
 
-    authDomain:"YOUR_PROJECT.firebaseapp.com",
+databaseURL: "https://jacob-chat-default-rtdb.europe-west1.firebasedatabase.app",
 
-    databaseURL:"YOUR_DATABASE_URL",
+projectId: "jacob-chat",
 
-    projectId:"YOUR_PROJECT_ID",
+storageBucket: "jacob-chat.firebasestorage.app",
 
-    storageBucket:"YOUR_PROJECT.appspot.com",
+messagingSenderId: "554355410181",
 
-    messagingSenderId:"YOUR_ID",
-
-    appId:"YOUR_APP_ID"
-
+appId: "1:554355410181:web:250c29e43f29cfb8b4e36c"
 
 };
 
@@ -227,15 +213,61 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 
-const database=firebase.database();
+const database = firebase.database();
 
 
 
-const chat=document.getElementById("chat");
 
-const input=document.getElementById("messageInput");
 
-const button=document.getElementById("sendButton");
+const chat = document.getElementById("chat");
+
+const hiddenInput = document.getElementById("hiddenInput");
+
+const terminalText = document.getElementById("terminalText");
+
+
+
+
+
+let currentText = "";
+
+
+
+
+
+// Sounds
+
+const typeSound = new Audio(
+"https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"
+);
+
+
+const sendSound = new Audio(
+"https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"
+);
+
+
+
+
+
+
+function playType(){
+
+    typeSound.currentTime = 0;
+
+    typeSound.play().catch(()=>{});
+
+}
+
+
+
+function playSend(){
+
+    sendSound.currentTime = 0;
+
+    sendSound.play().catch(()=>{});
+
+}
 
 
 
@@ -253,32 +285,124 @@ Math.floor(Math.random()*16777215)
 
 
 
-function sendMessage(){
 
 
-let text=input.value.trim();
+// Always focus
 
+function focusInput(){
 
-if(text==="") return;
-
-
-
-database.ref("messages").push({
-
-text:text,
-
-time:Date.now()
-
-});
-
-
-input.value="";
-
+    hiddenInput.focus();
 
 }
 
 
 
+window.onload = function(){
+
+    focusInput();
+
+};
+
+
+
+
+document.onclick=function(){
+
+    focusInput();
+
+};
+
+
+
+
+
+
+
+// Typing
+
+
+hiddenInput.addEventListener("input",function(){
+
+
+    let old = currentText;
+
+
+    currentText = hiddenInput.value;
+
+
+    terminalText.textContent = currentText;
+
+
+
+    if(currentText.length > old.length){
+
+        playType();
+
+    }
+
+
+});
+
+
+
+
+
+
+
+// Enter send
+
+
+hiddenInput.addEventListener("keydown",function(e){
+
+
+
+if(e.key==="Enter"){
+
+
+    let text=currentText.trim();
+
+
+
+    if(text !== ""){
+
+
+        database.ref("messages").push({
+
+            text:text,
+
+            time:Date.now()
+
+        });
+
+
+
+        playSend();
+
+
+    }
+
+
+
+    currentText="";
+
+    hiddenInput.value="";
+
+    terminalText.textContent="";
+
+
+
+}
+
+
+});
+
+
+
+
+
+
+
+// Receive messages
 
 
 database.ref("messages")
@@ -287,68 +411,32 @@ database.ref("messages")
 
 
 
-let data=snapshot.val();
+    let data=snapshot.val();
 
 
 
-let message=document.createElement("div");
+    let message=document.createElement("div");
 
 
-message.className="message";
+    message.className="message";
 
 
-message.style.color=randomColour();
+    message.style.color=randomColour();
 
 
-message.textContent=data.text;
-
-
-
-chat.appendChild(message);
+    message.textContent=data.text;
 
 
 
-window.scrollTo(0,document.body.scrollHeight);
+    chat.appendChild(message);
+
+
+
+    window.scrollTo(0,document.body.scrollHeight);
 
 
 
 });
-
-
-
-
-
-
-input.addEventListener("keydown",function(e){
-
-
-if(e.key==="Enter"){
-
-sendMessage();
-
-}
-
-
-});
-
-
-
-
-button.onclick=function(){
-
-sendMessage();
-
-};
-
-
-
-// clicking cursor focuses typing
-
-document.getElementById("cursor").onclick=function(){
-
-input.focus();
-
-};
 
 
 
