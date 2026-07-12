@@ -14,14 +14,9 @@
 body {
 
     margin:0;
-
     background:black;
-
     color:white;
-
     font-family:"Courier New", monospace;
-
-    min-height:100vh;
 
 }
 
@@ -30,35 +25,29 @@ body {
 #chat {
 
     margin:10px;
-
     font-size:16px;
 
 }
-
 
 
 .message {
 
     margin-bottom:5px;
-
     color:white;
+    line-height:16px;
 
 }
 
 
 
-
-/* Terminal input */
+/* PC terminal input */
 
 #inputArea {
 
-    margin:10px;
-
+    margin-left:10px;
+    margin-top:0;
     display:flex;
-
     align-items:center;
-
-    font-size:16px;
 
 }
 
@@ -66,10 +55,7 @@ body {
 
 #terminalText {
 
-    color:white;
-
     font-size:16px;
-
     white-space:pre;
 
 }
@@ -78,16 +64,9 @@ body {
 
 #cursor {
 
-    color:white;
-
     font-size:16px;
-
-    width:7px;
-
-    overflow:hidden;
-
+    width:6px;
     display:inline-block;
-
     animation:blink 1s infinite;
 
 }
@@ -97,9 +76,7 @@ body {
 @keyframes blink {
 
     50% {
-
         opacity:0;
-
     }
 
 }
@@ -107,13 +84,22 @@ body {
 
 
 
-/* Hidden input */
+/* Hidden PC input */
 
 #hiddenInput {
 
     position:absolute;
-
     opacity:0;
+
+}
+
+
+
+/* Mobile input */
+
+#mobileInputArea {
+
+    display:none;
 
 }
 
@@ -140,11 +126,10 @@ body {
 
     border:none;
 
-    cursor:pointer;
-
     padding:8px;
 
 }
+
 
 
 #clearButton img {
@@ -163,14 +148,14 @@ body {
 
 
 
-/* Mobile */
+/* PHONE */
 
 @media(max-width:600px){
 
 
     body {
 
-        padding-bottom:80px;
+        padding-bottom:70px;
 
     }
 
@@ -178,36 +163,97 @@ body {
 
     #inputArea {
 
+        display:none;
+
+    }
+
+
+
+    #mobileInputArea {
+
+
+        display:flex;
+
+
         position:fixed;
+
 
         bottom:15px;
 
+
         left:15px;
+
 
         right:15px;
 
+
         height:45px;
 
-        margin:0;
 
         border:3px solid white;
 
+
         background:black;
 
-        padding-left:10px;
 
     }
 
 
 
-    #terminalText,
-    #cursor {
+    #mobileInput {
+
+
+        flex:1;
+
+
+        background:black;
+
+
+        border:none;
+
+
+        outline:none;
+
+
+        color:white;
+
+
+        font-family:"Courier New", monospace;
+
 
         font-size:18px;
 
+
+        padding-left:10px;
+
+
     }
 
+
+
+    #sendButton {
+
+
+        width:45px;
+
+
+        background:white;
+
+
+        color:black;
+
+
+        border:none;
+
+
+        font-size:22px;
+
+
+    }
+
+
 }
+
 
 
 </style>
@@ -224,6 +270,7 @@ body {
 <body>
 
 
+
 <button id="clearButton">
 
 <img src="https://www.svgrepo.com/show/335463/trash.svg">
@@ -236,11 +283,26 @@ body {
 
 
 
+
+<!-- PC -->
+
 <div id="inputArea">
 
 <span id="terminalText"></span><span id="cursor">|</span>
 
-<input id="hiddenInput" autocomplete="off">
+<input id="hiddenInput">
+
+</div>
+
+
+
+<!-- MOBILE -->
+
+<div id="mobileInputArea">
+
+<input id="mobileInput" placeholder="">
+
+<button id="sendButton">↩</button>
 
 </div>
 
@@ -248,10 +310,9 @@ body {
 
 
 
+
 <script>
 
-
-// FIREBASE
 
 const firebaseConfig = {
 
@@ -270,7 +331,6 @@ messagingSenderId: "554355410181",
 
 appId: "1:554355410181:web:250c29e43f29cfb8b4e36c"
 
-
 };
 
 
@@ -278,40 +338,39 @@ appId: "1:554355410181:web:250c29e43f29cfb8b4e36c"
 firebase.initializeApp(firebaseConfig);
 
 
-const database = firebase.database();
+const database=firebase.database();
+
+
+
+const chat=document.getElementById("chat");
+
+const hiddenInput=document.getElementById("hiddenInput");
+
+const mobileInput=document.getElementById("mobileInput");
+
+const terminalText=document.getElementById("terminalText");
+
+const clearButton=document.getElementById("clearButton");
+
+const sendButton=document.getElementById("sendButton");
+
+
+
+let verified=false;
+
+let currentText="";
 
 
 
 
 
-const chat = document.getElementById("chat");
 
-const hiddenInput = document.getElementById("hiddenInput");
-
-const terminalText = document.getElementById("terminalText");
-
-const clearButton = document.getElementById("clearButton");
-
-
-
-let currentText = "";
-
-let verified = false;
-
-
-
-
-
-// Sounds
-
-
-const typeSound = new Audio(
+const typeSound=new Audio(
 "https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"
 );
 
 
-
-const sendSound = new Audio(
+const sendSound=new Audio(
 "https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"
 );
 
@@ -321,19 +380,59 @@ const sendSound = new Audio(
 
 function playType(){
 
-    typeSound.currentTime = 0;
-
-    typeSound.play().catch(()=>{});
+typeSound.currentTime=0;
+typeSound.play().catch(()=>{});
 
 }
-
 
 
 function playSend(){
 
-    sendSound.currentTime = 0;
+sendSound.currentTime=0;
+sendSound.play().catch(()=>{});
 
-    sendSound.play().catch(()=>{});
+}
+
+
+
+
+
+
+function sendMessage(text){
+
+
+text=text.trim();
+
+
+if(text==="") return;
+
+
+
+
+if(text==="?verify"){
+
+
+verified=true;
+
+clearButton.style.display="block";
+
+return;
+
+}
+
+
+
+database.ref("messages").push({
+
+text:text,
+
+time:Date.now()
+
+});
+
+
+playSend();
+
 
 }
 
@@ -343,149 +442,42 @@ function playSend(){
 
 
 
-// Focus automatically
-
-
-function focusInput(){
-
-    hiddenInput.focus();
-
-}
-
-
-
-window.onload=function(){
-
-    focusInput();
-
-};
-
-
-
-document.onclick=function(){
-
-    focusInput();
-
-};
-
-
-
-
-
-
-// Typing
+// PC typing
 
 
 hiddenInput.addEventListener("input",function(){
 
 
-    let old = currentText;
+currentText=hiddenInput.value;
 
 
-    currentText = hiddenInput.value;
+terminalText.textContent=currentText;
 
 
-    terminalText.textContent = currentText;
-
-
-
-    if(currentText.length > old.length){
-
-        playType();
-
-    }
+playType();
 
 
 });
 
-
-
-
-
-
-
-
-// Send / commands
 
 
 hiddenInput.addEventListener("keydown",function(e){
 
 
-
-    if(e.key === "Enter"){
-
+if(e.key==="Enter"){
 
 
-        let text = currentText.trim();
+sendMessage(currentText);
 
 
+currentText="";
+
+hiddenInput.value="";
+
+terminalText.textContent="";
 
 
-        // VERIFY COMMAND
-
-
-        if(text === "?verify"){
-
-
-
-            verified = true;
-
-
-            clearButton.style.display="block";
-
-
-
-            currentText="";
-
-            hiddenInput.value="";
-
-            terminalText.textContent="";
-
-
-
-            return;
-
-        }
-
-
-
-
-
-
-        if(text !== ""){
-
-
-
-            database.ref("messages").push({
-
-                text:text,
-
-                time:Date.now()
-
-            });
-
-
-
-            playSend();
-
-
-
-        }
-
-
-
-
-
-
-        currentText="";
-
-        hiddenInput.value="";
-
-        terminalText.textContent="";
-
-
-
-    }
+}
 
 
 });
@@ -496,25 +488,35 @@ hiddenInput.addEventListener("keydown",function(e){
 
 
 
-
-// Delete all messages
-
-
-clearButton.onclick=function(){
+// Mobile typing
 
 
-    if(!verified) return;
+mobileInput.addEventListener("keydown",function(e){
+
+
+if(e.key==="Enter"){
+
+
+sendMessage(mobileInput.value);
+
+
+mobileInput.value="";
+
+
+}
+
+
+});
 
 
 
-    database.ref("messages").remove();
+sendButton.onclick=function(){
 
 
+sendMessage(mobileInput.value);
 
-    chat.innerHTML="";
 
-
-    clearButton.style.display="none";
+mobileInput.value="";
 
 
 };
@@ -526,7 +528,52 @@ clearButton.onclick=function(){
 
 
 
-// Receive messages
+// focus PC
+
+
+document.onclick=function(){
+
+if(window.innerWidth>600){
+
+hiddenInput.focus();
+
+}
+
+};
+
+
+
+
+
+
+
+// clear messages
+
+
+clearButton.onclick=function(){
+
+
+if(!verified)return;
+
+
+database.ref("messages").remove();
+
+
+chat.innerHTML="";
+
+
+clearButton.style.display="none";
+
+
+};
+
+
+
+
+
+
+
+// receive
 
 
 database.ref("messages")
@@ -534,29 +581,22 @@ database.ref("messages")
 .on("child_added",function(snapshot){
 
 
-
-    let data = snapshot.val();
-
+let data=snapshot.val();
 
 
-    let message = document.createElement("div");
+let message=document.createElement("div");
 
 
-
-    message.className="message";
-
+message.className="message";
 
 
-    message.textContent=data.text;
+message.textContent=data.text;
 
 
-
-    chat.appendChild(message);
-
+chat.appendChild(message);
 
 
-    window.scrollTo(0,document.body.scrollHeight);
-
+window.scrollTo(0,document.body.scrollHeight);
 
 
 });
